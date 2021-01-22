@@ -1,7 +1,7 @@
 // Author: Zhi Wei Willy Su
-// Date: 
-// Filename: 
-// Lab 
+// Date: 20/01/2021
+// Filename: 01-ZhiWeiWillySu-Lab
+// Lab 1
 
 // Global Variables
 let scene, renderer, camera;
