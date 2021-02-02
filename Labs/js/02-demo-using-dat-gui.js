@@ -5,7 +5,7 @@
 import { WebGLIndexedBufferRenderer } from "three";
 
 //Global variables
-let scene, renderer, camera, orbitControl, controls;
+let scene, renderer, camera, orbitControl, control;
 let plane, sphere, cube;
 
 function init() {
@@ -23,8 +23,10 @@ function createCameraAndLights() {
     scene.add(camera);
 
     orbitControl = new THREE.OrbitControls(camera, renderer.domElement);
-    let spotLight = new THREE.PointLight(0xEEEEEE, 10, 50);
-    spotLight.position.set(-5, 5, -5);
+
+    //add spotlight
+    let spotLight = new THREE.PointLight(0xFFFFFF);
+    spotLight.position.set(-10, 20, -5);
     scene.add(spotLight);
 }
 
@@ -32,7 +34,7 @@ function createGeometry() {
     let axes = new THREE.AxisHelper(20);
     scene.add(axes);
 
-    // create plane material, geometry, and mesh
+    //create plane material, geometry, and mesh
     let mat = new THREE.MeshLambertMaterial({ color: 0xFF3366 });
     let geo = new THREE.PlaneBufferGeometry(60, 20);
     plane = new THREE.Mesh(geo, mat);
@@ -50,15 +52,25 @@ function setupDatGui(){
     // creating the object that will encapsulate of the variable that we are interested in
     let control = new function(){
         this.name = "Willy";
+        this.height = 0;
+        this.speed = 0.01;
+        this.color = '#cc5577';
+        this.threatLevel = [];
     };
     let gui = new dat.GUI();
     gui.add(control, 'Name');
-    gui.add(control, 'height').min(-8).max(8).step(0.25);
+    gui.add(control, 'height').min(-8).max(8).step(0.25).name('Height of cube');
+    gui.add(control, 'speed').min(0).max(0.2).step(0.01);
+    gui.addColor(control, 'colour').onFinishChange((coL)=> {alert('The color value is ${coL}');});
+    gui.add(control, 'threatLevel', ['red', 'orange', 'blue', 'green', 'yellow']);
 }
 
 function render() {
     requestAnimationFrame(render);
     orbitControl.update();
+    cube.position.y = control.height;
+    cube.position.x += control.speed;
+    cube.position.y += control.speed;
     renderer.render(scene, camera);
 }
 
