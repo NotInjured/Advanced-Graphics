@@ -5,67 +5,106 @@
 //Global variables
 let renderer, scene, camera;
 let orbitControl, controls;
-let ambientLight, spotLight, pointLight, directionalLight, rectLight, hemisphereLight;
+let ambientLight, spotLight, pointLight, directionalLight, rectLight, hemisphereLight, spotBlob, rectBlob, pointBLob, dirBlob, hemiBlob;
+let geoCube, matCube, geoPlane, matPlane, geoSphere, matSphere;
+let plane, cube, sphere;
 
 function init(){
     scene = new THREE.Scene();
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.shadowMap.enabled = true; //shadows
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 }
 
 function setupCameraAndLight(){
-    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100 );
-    camera.position.set( -40, 30, 40 );
-    camera.lookAt( scene.position );
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(20, 15, 20);
+    camera.lookAt(scene.position);
 
-    orbitControl = new THREE.OrbitControls( camera, renderer.domElement );
+    orbitControl = new THREE.OrbitControls(camera, renderer.domElement);
 
-    ambientLight = new THREE.AmbientLight( 0x404040);
+    ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
 
-    spotLight = new THREE.SpotLight( 0xFF0000);
+    spotLight = new THREE.SpotLight(0xFF0000);
     spotLight.castShadow = true;
+    spotLight.position.set(10, 10, -10);
     scene.add(spotLight);
+    scene.add(spotLight.target);
 
-    pointLight = new THREE.PointLight(0x00FF00);
+    pointLight = new THREE.PointLight(0x3311aa);
     pointLight.castShadow =  true;
+    pointLight.position.set(0, 7, -5);
     scene.add(pointLight);
 
-    directionalLight = new THREE.DirectionalLight(0x0000FF);
+    directionalLight = new THREE.DirectionalLight(0x00FF33);
     directionalLight.castShadow = true;
+    directionalLight.position.set(5, 8, 5);
     scene.add(directionalLight);
 
-    rectLight = new THREE.RectAreaLight(0x808080);
-    rectLight.position.set(5, 5, 0);
-    rectLight.lookAt(0, 0, 0);
+    THREE.RectAreaLightUniformsLib.init();
+    rectLight = new THREE.RectAreaLight(0x808080, 1, 25, 25);
+    rectLight.position.set(0, 15, 0);
     scene.add(rectLight);
 
     hemisphereLight = new THREE.HemisphereLight(0x3300AA, 0x00FF00);
     scene.add(hemisphereLight);
 
+    createDebugBlobs();
+}
+
+function createDebugBlobs(){
+    // Create blobs
+    let geo = new THREE.SphereBufferGeometry(0.5, 32, 32);
+    let mat = new THREE.MeshBasicMaterial({color:0x00FFFF});
+    spotBlob = new THREE.Mesh(geo, mat);
+    pointBlob = new THREE.Mesh(geo, mat);
+    dirBlob = new THREE.Mesh(geo, mat);
+    rectBlob = new THREE.Mesh(geo, mat);
+    hemiBlob = new THREE.Mesh(geo, mat);
+
+    spotBlob.position.set(10, 10, -10);
+    pointBlob.position.set(0, 7, -5);
+    dirBlob.position.set(5, 8, 5);
+    rectBlob.position.set(0, 15, 0);
+    hemiBlob.position.set(0, 1, 0);
+
+    scene.add(spotBlob);
+    scene.add(pointBlob);
+    scene.add(dirBlob);
+    scene.add(rectBlob);
+    scene.add(hemiBlob);
 }
 
 function createGeometry(){
     scene.add( new THREE.AxesHelper(20) );
 
-    // create the ground plane
-    let geo = new THREE.PlaneBufferGeometry(200, 200);
-    let mat = new THREE.MeshStandardMaterial({color: 0x808080});
-    let plane = new THREE.Mesh( geo, mat );
+    // Create Plane
+    geoPlane = new THREE.PlaneBufferGeometry(200, 200);
+    matPlane = new THREE.MeshLambertMaterial({color: 0x808080});
+    plane = new THREE.Mesh( geoPlane, matPlane );
     plane.receiveShadow=true; //enables an object to receive shadow
         
     // rotate and position the plane
     plane.rotation.x = -0.5 * Math.PI;
-    scene.add( plane );
+    scene.add(plane);
 
-    geo = new THREE.BoxGeometry( 8, 1, 8 );
-    mat = new THREE.MeshPhysicalMaterial( { color: 0xaabbaa } );
-    mesh = new THREE.Mesh( geo, mat );
-    mesh.position.set(0, 5, 0);
-    mesh.castShadow=true; //allow object to cast shadow
-    scene.add( mesh );
+    // Create Cube
+    geoCube = new THREE.BoxBufferGeometry(6, 1, 6);
+    matCube = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
+    cube = new THREE.Mesh(geoCube, matCube);
+    cube.position.set(5, 5, 0);
+    cube.castShadow = true; //allow object to cast shadow
+    scene.add(cube);
+
+    // Create Sphere
+    geoSphere = new THREE.SphereGeometry(3, 32, 32);
+    matSphere = new THREE.MeshStandardMaterial({color:0xaaffaa});
+    sphere = new THREE.Mesh(geoSphere, matSphere);
+    sphere.position.set(10, 5, -10);
+    sphere.castShadow = true;
+    scene.add(sphere);
 }
 
 function setupDatGui(){
@@ -167,10 +206,17 @@ function setupDatGui(){
 function render(){
     ambientLight.visible = controls.ambientVisible;
     spotLight.visible = controls.spotVisible;
+    spotBlob.visible = spotLight.visible;
     pointLight.visible = controls.pointVisible;
+    pointBlob.visible = pointLight.visible;
     directionalLight.visible = controls.dirVisible;
+    dirBlob.visible = directionalLight.visible;
     rectLight.visible = controls.rectVisible;
+    rectBlob.visible = rectLight.visible;
     hemisphereLight.visible = controls.hemiVisible;
+    hemiBlob.visible = hemisphereLight.visible;
+
+    spotLight.target = sphere;
 
 
     requestAnimationFrame( render );
