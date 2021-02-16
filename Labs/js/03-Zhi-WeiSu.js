@@ -109,7 +109,7 @@ function createGeometry(){
 
 function setupDatGui(){
     controls = new function(){
-        this.ambientIntensity = ambientLight.intensity;//this is a comment
+        this.ambientIntensity = ambientLight.intensity;
         this.ambientVisible = ambientLight.visible;
         this.ambientColor = ambientLight.color.getStyle();
 
