@@ -154,5 +154,3 @@ window.onload = () => {
     setupDatGui();
     render();
 };
-
-
