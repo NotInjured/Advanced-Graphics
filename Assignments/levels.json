@@ -1,0 +1,10 @@
+{
+    "obj": [
+        {
+            "geo": "Box", "color": "0xff0000", "trasparent": true, "opacity": 0.75
+        }
+    ], 
+    "boxPos": [
+        [2, 2, 2], [3, 3, 3]
+    ]
+}
