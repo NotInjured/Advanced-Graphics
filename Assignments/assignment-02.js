@@ -1,10 +1,11 @@
 // Author: Zhi Wei Willy Su
-// Date: 
-// Filename:
+// Date: 04/07/2021
+// Filename: assignment-02.js
 
 let renderer, scene, camera;
-let orbitControls, controls, gui, levels, jsonLoaded = false, raycasting = false, resetAdded = false;
-const objects = [], removed = [];
+let orbitControls, controls, gui, levels, info;
+let jsonLoaded = false, raycasting = false, resetAdded = false;
+const objects = [], removed = [], min = [6, 10, 14, 18, 22];
 
 let Shaders = {}
 Shaders.TextureShader = {
@@ -35,8 +36,8 @@ Shaders.TextureShader = {
         gl_FragColor = texture2D(textureA, vUv);
     }`
 };
-Shaders.BoxShader = {
-	name: 'BoxShader', //for debugging
+Shaders.BoxShader1 = {
+	name: 'BoxShader1', //for debugging
 	uniforms: {
         'textureA':{value: null}
 	},
@@ -63,8 +64,66 @@ Shaders.BoxShader = {
         gl_FragColor = texture2D(textureA, vUv);
     }`
 };
+Shaders.BoxShader2 = {
+	name: 'BoxShader2', //for debugging
+	uniforms: {
+        'textureB':{value: null}
+	},
+	
+	vertexShader: 
+	`
+    uniform sampler2D textureB;
+	varying vec2  vUv;
+
+	void main() {
+		vec3 pos = position;
+        vec4 color = texture2D(textureB, uv);
+        vUv = uv;
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
+	}`,
+
+	fragmentShader:
+	`
+    uniform sampler2D textureB;
+    varying vec2 vUv;
+    vec3 color = vec3(0.0, 0.0, 1.0);         //local variable red
+
+    void main() {
+        gl_FragColor = texture2D(textureB, vUv);
+    }`
+};
+Shaders.BoxShader3 = {
+	name: 'BoxShader3', //for debugging
+	uniforms: {
+        'textureC':{value: null}
+	},
+	
+	vertexShader: 
+	`
+    uniform sampler2D textureC;
+	varying vec2  vUv;
+
+	void main() {
+		vec3 pos = position;
+        vec4 color = texture2D(textureC, uv);
+        vUv = uv;
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
+	}`,
+
+	fragmentShader:
+	`
+    uniform sampler2D textureC;
+    varying vec2 vUv;
+    vec3 color = vec3(0.0, 0.0, 1.0);         //local variable red
+
+    void main() {
+        gl_FragColor = texture2D(textureC, vUv);
+    }`
+};
 const __shaderT1 = Shaders.TextureShader;
-const __shaderT2 = Shaders.BoxShader;
+const __shaderT2 = Shaders.BoxShader1;
+const __shaderT3 = Shaders.BoxShader2;
+const __shaderT4 = Shaders.BoxShader3;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -81,6 +140,8 @@ function init() {
     scene.position.set(0, -10, 0);
 
     // document.addEventListener('mousemove', onMouseMove);
+    info = document.getElementById("extra");
+    info.innerText = "";
 }
 
 function setupCameraAndLight() {
@@ -110,6 +171,9 @@ function createGeometry() {
     );
 
     __shaderT1.uniforms.textureA.value = new THREE.TextureLoader().load('assets/textures/Wood_Texture.png');
+    __shaderT2.uniforms.textureA.value = new THREE.TextureLoader().load('assets/textures/Iron_Block.png');
+    __shaderT3.uniforms.textureB.value = new THREE.TextureLoader().load('assets/textures/Gold_Block.png');
+    __shaderT4.uniforms.textureC.value = new THREE.TextureLoader().load('assets/textures/Diamond_Block.png');
 
     table = new THREE.Mesh(new THREE.BoxBufferGeometry(50, 25, 0.5, 128, 128, 128), textureMaterial);
     table.castShadow = true;
@@ -129,71 +193,28 @@ function setupDatGui() {
         };
         this.levels = [];
         this.reset = function(){
-            if(objects.length > 0){
-                objects.length = 0;
-                scene.traverse(function(o){
-                    if(o.name == "iBlock")
-                        scene.remove(o);
-                })
-            }
-
+            clearScene();
             switch(this.levels){
                 case '0':
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson(levels.obj);
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                }
-                
-                objects.forEach(o=>{
-                    scene.add(o);
-                })
-            break;
-            case '1':
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson(levels.obj);
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                }
-                
-                objects.forEach(o=>{
-                    scene.add(o);
-                })
-
-            break;
-            case '2':
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson(levels.obj);
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                }
-                
-                objects.forEach(o=>{
-                    scene.add(o);
-                })
-            break;
-            case '3':
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson(levels.obj);
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                }
-                
-                objects.forEach(o=>{
-                    scene.add(o);
-                })
-            break;
-            case '4':
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson(levels.obj);
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                }
-                
-                objects.forEach(o=>{
-                    scene.add(o);
-                })
-            break;
+                    generateBlocks();
+                    info.innerText = objects.length.toString() + "/" + min[0];
+                break;
+                case '1':
+                    generateBlocks();
+                    info.innerText = objects.length.toString() + "/" + min[1]; 
+                break;
+                case '2':
+                    generateBlocks();
+                    info.innerText = objects.length.toString() + "/" + min[2]; 
+                break;
+                case '3':
+                    generateBlocks();
+                    info.innerText = objects.length.toString() + "/" + min[3]; 
+                break;
+                case '4':
+                    generateBlocks();
+                    info.innerText = objects.length.toString() + "/" + min[4]; 
+                break;
             }
         };
     };
@@ -220,84 +241,37 @@ function loadLevels(url){
             gui.add(controls, 'reset');
             resetAdded = true;
         };
+
         switch(e){
             case '0':
-                if(objects.length > 0){ 
-                    objects.forEach(o=>{
-                        scene.remove(o);
-                    })
-                    objects.length = 0;
-                }
-
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson();
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                }
-                objects.forEach(o=>{
-                    scene.add(o);
-                    console.log(o);
-                })
+                clearScene();
+                generateBlocks();
+                info.style.color = "red";
+                info.innerText = objects.length.toString() + "/" + min[0]; 
             break;
             case '1':
-                if(objects.length > 0){ 
-                    objects.forEach(o=>{
-                        scene.remove(o);
-                    })
-                    objects.length = 0;
-                }
-
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson();
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                    scene.add(block);
-                }
+                clearScene();
+                generateBlocks();
+                info.style.color = "red";
+                info.innerText = objects.length.toString() + "/" + min[1]; 
             break;
             case '2':
-                if(objects.length > 0){ 
-                    objects.forEach(o=>{
-                        scene.remove(o);
-                    })
-                    objects.length = 0;
-                }
-
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson();
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                    scene.add(block);
-                }
+                clearScene();
+                generateBlocks();
+                info.style.color = "red";
+                info.innerText = objects.length.toString() + "/" + min[2]; 
             break;
             case '3':
-                if(objects.length > 0){ 
-                    objects.forEach(o=>{
-                        scene.remove(o);
-                    })
-                    objects.length = 0;
-                }
-
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson();
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                    scene.add(block);
-                }
+                clearScene();
+                generateBlocks();
+                info.style.color = "red";
+                info.innerText = objects.length.toString() + "/" + min[3]; 
             break;
             case '4':
-                if(objects.length > 0){ 
-                    objects.forEach(o=>{
-                        scene.remove(o);
-                    })
-                    objects.length = 0;
-                }
-
-                for(let i = 0; i < 10; i++){
-                    let block = parseJson();
-                    block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
-                    objects.push(block);
-                    scene.add(block);
-                }
+                clearScene();
+                generateBlocks();
+                info.style.color = "red";
+                info.innerText = objects.length.toString() + "/" + min[4]; 
             break;
         }
     });
@@ -305,22 +279,56 @@ function loadLevels(url){
 }
 
 function parseJson(){
-    boxMaterial = new THREE.ShaderMaterial(
-        {
-            uniforms: __shaderT2.uniforms,
-            vertexShader: __shaderT2.vertexShader,
-            fragmentShader: __shaderT2.fragmentShader
-        }
-    );
-
-    __shaderT2.uniforms.textureA.value = new THREE.TextureLoader().load('assets/textures/Iron_Block.png');
-
     let box = new THREE.Mesh(
-        new THREE.BoxBufferGeometry(4, 4, 4), 
-        boxMaterial);
-        box.castShadow = true;
-        box.name = "iBlock";
+        new THREE.BoxBufferGeometry(4, 4, 4));
+    box.castShadow = true;
+    box.name = "iBlock";
+
     return box;
+}
+
+function generateBlocks(){
+    for(let i = 0; i < 10; i++){
+        let block = parseJson();
+        block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
+        if(levels.boxPos[i][3] == "I"){
+            block.material = new THREE.ShaderMaterial(
+                {
+                    uniforms: __shaderT2.uniforms,
+                    vertexShader: __shaderT2.vertexShader,
+                    fragmentShader: __shaderT2.fragmentShader
+                }
+            );
+        }else if(levels.boxPos[i][3] == "G"){
+            block.material = new THREE.ShaderMaterial(
+                {
+                    uniforms: __shaderT3.uniforms,
+                    vertexShader: __shaderT3.vertexShader,
+                    fragmentShader: __shaderT3.fragmentShader
+                }
+            );
+        }
+        else if(levels.boxPos[i][3] == "D"){
+            block.material = new THREE.ShaderMaterial(
+                {
+                    uniforms: __shaderT4.uniforms,
+                    vertexShader: __shaderT4.vertexShader,
+                    fragmentShader: __shaderT4.fragmentShader
+                }
+            );
+        }
+        objects.push(block);
+        scene.add(block);
+    }
+}
+
+function clearScene(){
+    if(objects.length > 0){ 
+        objects.forEach(o=>{
+            scene.remove(o);
+        })
+        objects.length = 0;
+    }
 }
 
 function render() {
@@ -339,6 +347,39 @@ function render() {
         document.addEventListener('mousedown', onMouseDown, false);
     else
         document.removeEventListener('mousedown', onMouseDown, false);
+
+    switch(controls.levels){
+        case '0':
+            if(objects.length > min[0])
+                info.style.color = "red";
+            else
+                info.style.color = "green";
+        break;
+        case '1':
+            if(objects.length > min[1])
+                info.style.color = "red";
+            else
+                info.style.color = "green";
+        break;
+        case '2':
+            if(objects.length > min[2])
+                info.style.color = "red";
+            else
+                info.style.color = "green";
+        break;
+        case '3':
+            if(objects.length > min[3])
+                info.style.color = "red";
+            else
+                info.style.color = "green";
+        break;
+        case '4':
+            if(objects.length > min[4])
+                info.style.color = "red";
+            else
+                info.style.color = "green";
+        break;
+    }
 }
 
 function onMouseDown(event){
@@ -350,14 +391,11 @@ function onMouseDown(event){
     if(intersects.length > 0){
         const intersect = intersects[0];
         if(intersect.object.name === "iBlock"){
-            //console.log(intersect);
             intersect.object.enabled = false;
             scene.remove(intersect.object);
             objects.splice( objects.indexOf( intersect.object ), 1 );
-            // objects.pop();
             removed.push(intersect.object);
-            // console.log(objects);
-            // console.log(intersects.length);
+            info.innerText = objects.length.toString() + "/" + min[0]; 
         }
         render();
     }

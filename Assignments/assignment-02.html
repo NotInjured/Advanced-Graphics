@@ -7,7 +7,22 @@
     	body{
     		margin: 0;
     		overflow: hidden;
+            background-color: #f0f0f0;
+			color: #444;
     	}
+        #info {
+	        position: absolute;
+            margin-left: 25%;
+            top: 10px;
+	        width: 50%;
+            z-index: 100;
+	        display:block;
+	        text-align: center;
+        }
+        #extra {
+	        position: relative;
+            font-size: 75px;
+        }
     </style>
     <script src="/Labs/node_modules/three/build/three.js"></script>
     <script src="/Labs/node_modules/three/examples/js/libs/dat.gui.min.js"></script>
@@ -15,5 +30,13 @@
     <script src="assignment-02.js"></script>
 </head>
 <body>
+    <div id="info">
+         <header>Zhi-WeiSu - Assignment 02</header><br>
+         Lock Camera to <strong>remove</strong> blocks<br>
+        Remove <strong>overflowing</strong> blocks within the time limit to finish the level.
+        <div id="extra">
+            placeholder
+        </div>
+    </div>
 </body>
 </html>
