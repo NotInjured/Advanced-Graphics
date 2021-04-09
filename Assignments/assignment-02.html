@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>COMP392: Lab 10 - The base for vertex shader</title>
+    <title>Block Buster</title>
     <style>
     	body{
     		margin: 0;
@@ -21,22 +21,30 @@
         }
         #extra {
 	        position: relative;
-            font-size: 75px;
+            font-size: 50px;
+        }
+        #hScore {
+	        position: relative;
+            font-size: 50px;
         }
     </style>
     <script src="node_modules/three/build/three.js"></script>
     <script src="node_modules/three/examples/js/libs/dat.gui.min.js"></script>
     <script src="node_modules/three/examples/js/controls/OrbitControls.js"></script>
-    <script src="node_modules/physi.js"></script>
+    <script src="physi.js"></script>
     <script src="assignment-02.js"></script>
 </head>
 <body>
     <div id="info">
          <header>Zhi-WeiSu - Assignment 02</header><br>
          Lock Camera to <strong>remove</strong> blocks<br>
-        Remove <strong>overflowing</strong> blocks within the time limit to finish the level.
+        Remove <strong>overflowing</strong> blocks to drop the <strong>diamond block</strong> onto the table within the time limit to finish the level<br>
+        You cannot remove more than the minimum; Removing <strong>gold blocks</strong> give more points
         <div id="extra">
             placeholder
+        </div>
+        <div id="hScore">
+
         </div>
     </div>
 </body>

@@ -2,7 +2,6 @@
 //filename: 04-using-materials.js
 //date" January 21, 2020
 
-
 let renderer, scene, camera;
 let orbitControl, light1, teapot;
 
