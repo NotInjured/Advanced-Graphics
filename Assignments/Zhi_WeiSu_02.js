@@ -2,20 +2,15 @@
 // Date: 04/07/2021
 // Filename: assignment-02.js
 /*
-* List of Innovations 
+* Innovations 
 *   More levels
-*   More Block types
+*   More Block types with different mechanics
+*   Moving blocks around the level
+*
+* Technical Improvement
+*   Finding a way to make all blocks inactive if they have a velocity of 0?
 *   
-*
-*
-*
-*
-*
-*
-*
-*
-*
-*
+*   
 */
 
 let renderer, scene, camera;
@@ -55,14 +50,34 @@ function init() {
     scene.addEventListener('update',function() {
         if(started){
             if(objects.length > 0){
-                for(let i = 0; i < objects.length; i++){
-                    objects[i].__dirtyPosition = true;
-                    objects[i].__dirtyRotation = true;
-                }
+                objects.forEach(o=>{
+                    if(o.getAngularVelocity() > 0 || o.getLinearVelocity() > 0){
+                        o.__dirtyPosition = false;
+                        o.__dirtyRotation = false;
+                    }
+                    else{
+                        o.__dirtyPosition = true;
+                        o.__dirtyRotation = true;
+                    }
+                })
             }
         }
         scene.simulate();
     });
+
+    let cubeLoader = new THREE.CubeTextureLoader().setPath( '' );
+
+    let urls = [
+        'Zhi_WeiSu[5].png', //left  
+        'Zhi_WeiSu[6].png', //right  
+        'Zhi_WeiSu[7].png', //top  
+        'Zhi_WeiSu[8].png', //bottom  
+        'Zhi_WeiSu[9].png', //back  
+        'Zhi_WeiSu[10].png'  //front
+    ];  
+        
+    let cubeTexture  = cubeLoader.load(urls);
+    scene.background = cubeTexture;
 }
 
 function setupCameraAndLight() {
@@ -84,7 +99,7 @@ function createGeometry() {
     table = new Physijs.BoxMesh(
         new THREE.BoxBufferGeometry(50, 25, 0.5),
         Physijs.createMaterial(new THREE.MeshStandardMaterial(
-            {color: 0xeeeeee, map: new THREE.TextureLoader().load('assets/textures/Wood_Texture.png')},
+            {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[4].png')},
         0.3, 0.9)), 0)
     table.castShadow = true;
     table.receiveShadow = true;
@@ -105,7 +120,7 @@ function setupDatGui() {
         this.lockCamera = false;
         this.url = 'localhost';
         this.port = '5500';
-        this.filename = 'levels.json';
+        this.filename = 'Zhi_WeiSu[0].json';
         this.loadLevels = function(){
             loadLevels(this.filename);
         };
@@ -201,18 +216,18 @@ function generateBlocks(){
         block.position.set(levels.boxPos[i][0], levels.boxPos[i][1], levels.boxPos[i][2]);
         if(levels.boxPos[i][3] == "I"){
             block.material = Physijs.createMaterial(new THREE.MeshStandardMaterial(
-                {color: 0xeeeeee, map: new THREE.TextureLoader().load('assets/textures/Iron_Block.png')},
-                0.5, 0.9), 1);
+                {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[0].png')},
+                0.25, 0.45), 5);
             block.name = "iBlock";
         }else if(levels.boxPos[i][3] == "G"){
             block.material = Physijs.createMaterial(new THREE.MeshStandardMaterial(
-                {color: 0xeeeeee, map: new THREE.TextureLoader().load('assets/textures/Gold_Block.png')},
-                0.5, 0.9), 1);
+                {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[1].png')},
+                0.25, 0.45), 5);
             block.name = "gBlock";
         }else if(levels.boxPos[i][3] == "D"){
             block.material = Physijs.createMaterial(new THREE.MeshStandardMaterial(
-                {color: 0xeeeeee, map: new THREE.TextureLoader().load('assets/textures/Diamond_Block.png')},
-                0.5, 0.9), 1);
+                {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[2].png')},
+                0.25, 0.45), 5);
             block.name = "dBlock";
         }
         block.__dirtyPosition = true;
@@ -237,7 +252,7 @@ function clearScene(){
         table = new Physijs.BoxMesh(
             new THREE.BoxBufferGeometry(50, 50, 0.5),
             Physijs.createMaterial(new THREE.MeshStandardMaterial(
-                {color: 0xeeeeee, map: new THREE.TextureLoader().load('assets/textures/Wood_Texture.png')},
+                {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[0].png')},
             0.3, 0.9)), 0)
         table.castShadow = true;
         table.receiveShadow = true;
@@ -250,7 +265,7 @@ function clearScene(){
         table = new Physijs.BoxMesh(
             new THREE.BoxBufferGeometry(50, 25, 0.5),
             Physijs.createMaterial(new THREE.MeshStandardMaterial(
-                {color: 0xeeeeee, map: new THREE.TextureLoader().load('assets/textures/Wood_Texture.png')},
+                {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[0].png')},
             0.3, 0.9)), 0)
         table.castShadow = true;
         table.receiveShadow = true;
@@ -262,6 +277,26 @@ function clearScene(){
     started = false;
     score = 0;
     info.innerText = objects.length.toString() + "/" + min[controls.levels] + " " + "60";
+    msg.innerText = "";
+}
+
+function winConditions(){
+    if(objects.length > min[controls.levels] && parseInt(time) == 0){
+        info.style.color = "red";
+        clock.stop();
+        msg.innerText ="Lose"
+    }
+    else if(objects.length > min[controls.levels])
+        info.style.color = "red";
+    else if(objects.length == min[controls.levels]){
+        info.style.color = "green";
+        clock.stop();
+        msg.innerText ="Clear"
+        objects.forEach(o=>{
+            o.__dirtyPosition = false;
+            o.__dirtyRotation = false;
+        })
+    }
 }
 
 function checkConditions(){
@@ -281,37 +316,24 @@ function checkConditions(){
     else
         document.removeEventListener('mousedown', onMouseDown, false);
 
+    // if(controls.levels >= 0)
+    //     winConditions();
     // checks winning condition
     switch(controls.levels){
         case '0':
-            if(objects.length > min[controls.levels])
-                info.style.color = "red";
-            else
-                info.style.color = "green";
+            winConditions();
         break;
         case '1':
-            if(objects.length > min[controls.levels])
-                info.style.color = "red";
-            else
-                info.style.color = "green";
+            winConditions();
         break;
         case '2':
-            if(objects.length > min[controls.levels])
-                info.style.color = "red";
-            else
-                info.style.color = "green";
+            winConditions();
         break;
         case '3':
-            if(objects.length > min[controls.levels])
-                info.style.color = "red";
-            else
-                info.style.color = "green";
+            winConditions();
         break;
         case '4':
-            if(objects.length > min[controls.levels])
-                info.style.color = "red";
-            else
-                info.style.color = "green";
+            winConditions();
         break;
     }
 
@@ -324,6 +346,14 @@ function checkConditions(){
 
     if(time == "0")
         clock.stop();
+
+    // checks each block positions
+    if(objects.length > 0){
+        objects.forEach(o=>{
+            if(o.position.y < -5)
+                scene.remove(o);
+        })
+    }
 }
 
 function onMouseDown(event){
