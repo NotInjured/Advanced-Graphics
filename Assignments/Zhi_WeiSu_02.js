@@ -7,10 +7,10 @@
 *   More Block types with different mechanics
 *   Moving blocks around the level
 *
-* Technical Improvement
+* Technical Improvement/Difficulty
 *   Finding a way to make all blocks inactive if they have a velocity of 0?
-*   
-*   
+*   Scoring system paired with time is a bit weird, needs to be a bit better accurate
+*   FRAMES OPTIMIZATION
 */
 
 let renderer, scene, camera;
@@ -18,7 +18,7 @@ let orbitControls, controls, gui, levels, info, time;
 let obj1, obj2, obj3;
 let jsonLoaded = false, raycasting = false, resetAdded = false, started = false;
 let delta = 0, frame = 30, score = 0, timer = 60;
-const objects = [], removed = [], 
+const objects = [], removed = [], diamonds = [], 
 min = [6, 10, 14, 35, 80], 
 start =[0, 10, 29, 57, 109], 
 end =[10, 29, 57, 109, 232], 
@@ -229,6 +229,7 @@ function generateBlocks(){
                 {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[2].png')},
                 0.25, 0.45), 5);
             block.name = "dBlock";
+            diamonds.push(block);
         }
         block.__dirtyPosition = true;
         block.__dirtyRotation = true;
@@ -246,13 +247,14 @@ function clearScene(){
             scene.remove(o);
         })
         objects.length = 0;
+        diamonds.length = 0;
     }
     if(controls.levels == 4){
         scene.remove(table)
         table = new Physijs.BoxMesh(
             new THREE.BoxBufferGeometry(50, 50, 0.5),
             Physijs.createMaterial(new THREE.MeshStandardMaterial(
-                {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[0].png')},
+                {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[4].png')},
             0.3, 0.9)), 0)
         table.castShadow = true;
         table.receiveShadow = true;
@@ -265,7 +267,7 @@ function clearScene(){
         table = new Physijs.BoxMesh(
             new THREE.BoxBufferGeometry(50, 25, 0.5),
             Physijs.createMaterial(new THREE.MeshStandardMaterial(
-                {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[0].png')},
+                {color: 0xeeeeee, map: new THREE.TextureLoader().load('Zhi_WeiSu[4].png')},
             0.3, 0.9)), 0)
         table.castShadow = true;
         table.receiveShadow = true;
@@ -281,21 +283,24 @@ function clearScene(){
 }
 
 function winConditions(){
-    if(objects.length > min[controls.levels] && parseInt(time) == 0){
-        info.style.color = "red";
-        clock.stop();
-        msg.innerText ="Lose"
-    }
-    else if(objects.length > min[controls.levels])
-        info.style.color = "red";
-    else if(objects.length == min[controls.levels]){
-        info.style.color = "green";
-        clock.stop();
-        msg.innerText ="Clear"
-        objects.forEach(o=>{
-            o.__dirtyPosition = false;
-            o.__dirtyRotation = false;
-        })
+    if(started){
+        if(objects.length > min[controls.levels] && diamonds.length < dblocks[controls.levels] || parseInt(time) == 0){
+            info.style.color = "red";
+            clock.stop();
+            msg.innerText ="Lose"
+            raycasting = false;
+        }
+        else if(objects.length == min[controls.levels] && diamonds.length == dblocks[controls.levels]){
+            info.style.color = "green";
+            clock.stop();
+            msg.innerText ="Clear"
+            objects.forEach(o=>{
+                o.__dirtyPosition = false;
+                o.__dirtyRotation = false;
+            })
+        }
+        else if(objects.length > min[controls.levels])
+            info.style.color = "red";
     }
 }
 
@@ -350,8 +355,12 @@ function checkConditions(){
     // checks each block positions
     if(objects.length > 0){
         objects.forEach(o=>{
-            if(o.position.y < -5)
+            if(o.position.y < -5){
+                if(o.name == "dBlock")
+                    diamonds.pop(o);
                 scene.remove(o);
+                objects.pop(o)
+            }
         })
     }
 }
